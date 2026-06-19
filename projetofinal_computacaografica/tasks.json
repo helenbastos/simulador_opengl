@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compilar OpenGL 64-bit",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-o", "main.exe",
+                "main.cpp",
+                "VGlobais.cpp",
+                "objetos.cpp",
+                "-I", "./include",
+                "-L", "./lib/x64",
+                "-lfreeglut", "-lopengl32", "-lglu32"
+            ]
+        }
+    ]
+}
