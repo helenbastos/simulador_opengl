@@ -157,6 +157,10 @@ void desenharPainelRodape() {
         sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
     }
 
+    //mudar para switch no final
+    //mod_tranformacoes
+
+
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -209,6 +213,8 @@ void desenharHUDTopo() {
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
             buf, 0.15f, 0.15f, 0.2f);
     }
+
+    //mod_tranformacoes
 
     renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
         "Arrastar: girar | Scroll: zoom | W: wire/solido",
@@ -269,6 +275,8 @@ void display() {
     if (moduloAtual == mod_objetos) {
         desenharObjeto();
     }
+
+    //mod_tranformacoes
 
     // ---- Painéis 2D: ocupam a janela inteira ----
     glViewport(0, 0, larguraJanela, alturaJanela);
@@ -343,6 +351,8 @@ void teclaEspecial(int key, int x, int y) {
         if (key == GLUT_KEY_LEFT)  obj = (obj + 7) % 8;
         objetoAtual = (TipoObjeto)obj;
     }
+    //mod_tranformacoes -- verificar quantos tipos existem de mudanças com a seta
+    
     glutPostRedisplay();
 }
 

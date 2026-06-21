@@ -9,6 +9,6 @@ const char* nomeObjetoAtual();
 
 // Monta a string do comando OpenGL e a descrição
 // do objeto atual (para o painel de feedback)
-void obterCodigoObjeto(char* codigo, char* descricao);
+void obterCodigoObjeto(char* codigo, char* descricao);  
 
 #endif

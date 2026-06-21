@@ -15,6 +15,11 @@ typedef enum{
 
 } TipoObjeto;
 
+typedef enum{
+    transformacao_escala,
+    transformacao_rotacao,
+    transformacao_translacao
+}TipoTransformacao;
 
 // Módulos do painel lateral
 typedef enum
@@ -27,7 +32,9 @@ typedef enum
     mod_curvas
 } Modulo;
 
+
 extern TipoObjeto objetoAtual;
+extern TipoTransformacao transformacaoAtual;
 extern Modulo moduloAtual;
 extern int modoWire;
 extern int larguraJanela;
