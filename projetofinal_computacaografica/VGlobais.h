@@ -15,6 +15,11 @@ typedef enum{
 
 } TipoObjeto;
 
+typedef enum{
+    transformacao_escala,
+    transformacao_rotacao,
+    transformacao_translacao
+}TipoTransformacao;
 
 // Módulos do painel lateral
 typedef enum
@@ -27,7 +32,19 @@ typedef enum
     mod_curvas
 } Modulo;
 
+//modificados na main com os botões e usados em transformacoes.h para mostrar código
+struct ValoresEixosTG {
+    float xscale = 1.0f;
+    float yscale = 1.0f;
+    float xtranslate = 0.0f;
+    float ytranslate = 0.0f;
+    float xrotate = 20.0f;
+    float yrotate = -30.0f;
+};
+
+extern ValoresEixosTG eixosTransformacoes; 
 extern TipoObjeto objetoAtual;
+extern TipoTransformacao transformacaoAtual;
 extern Modulo moduloAtual;
 extern int modoWire;
 extern int larguraJanela;

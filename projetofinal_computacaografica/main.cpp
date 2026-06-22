@@ -2,6 +2,7 @@
 #include <cstdio>
 #include "VGlobais.h"
 #include "objetos.h"
+#include "transformacoes.h"
 
 // ============================================================
 //  Estado de interação com o mouse
@@ -152,9 +153,11 @@ void desenharPainelRodape() {
 
     if (moduloAtual == mod_objetos)
         obterCodigoObjeto(codigo, descricao);
+    else if(moduloAtual == mod_transformacoes)
+        obterCodigoTransformacao(codigo, descricao);
     else {
         sprintf(codigo,    "// Modulo em construcao");
-        sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
+        //sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
     }
 
     glMatrixMode(GL_PROJECTION);
@@ -208,11 +211,18 @@ void desenharHUDTopo() {
         sprintf(buf, "Objeto: %s  [setas para trocar]", nomeObjetoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
             buf, 0.15f, 0.15f, 0.2f);
-    }
-
-    renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
         "Arrastar: girar | Scroll: zoom | W: wire/solido",
         0.45f, 0.45f, 0.5f);
+    }else if(moduloAtual==mod_transformacoes){
+        char buf[64];
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
+        "Transformacoes Geometricas [setas para modificar valores dos eixos x e y]", 0.15f, 0.15f, 0.2f);
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+        "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala",
+        0.45f, 0.45f, 0.5f);
+    }
+   
 }
 
 // ============================================================
@@ -268,6 +278,11 @@ void display() {
 
     if (moduloAtual == mod_objetos) {
         desenharObjeto();
+    }
+
+    //mod_tranformacoes
+    if(moduloAtual==mod_transformacoes){
+        desenharTransformacao();
     }
 
     // ---- Painéis 2D: ocupam a janela inteira ----
@@ -327,6 +342,8 @@ void mouseMove(int x, int y) {
     if (botaoPressionado == GLUT_LEFT_BUTTON && x > LARGURA_PAINEL_LATERAL) {
         anguloY += (x - mouseX) * 0.5f;
         anguloX += (y - mouseY) * 0.5f;
+        eixosTransformacoes.xrotate=anguloX;
+        eixosTransformacoes.yrotate=anguloY;
     }
     mouseX = x;
     mouseY = y;
@@ -343,11 +360,28 @@ void teclaEspecial(int key, int x, int y) {
         if (key == GLUT_KEY_LEFT)  obj = (obj + 7) % 8;
         objetoAtual = (TipoObjeto)obj;
     }
+    //mod_tranformacoes -- verificar quantos tipos existem de mudanças com a seta
+    if(moduloAtual==mod_transformacoes){
+        if (transformacaoAtual==transformacao_translacao){
+            if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xtranslate +=0.5f; if(eixosTransformacoes.xtranslate>6.0f) eixosTransformacoes.xtranslate=6.0f;
+            if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xtranslate -=0.5f; if(eixosTransformacoes.xtranslate<-6.0f) eixosTransformacoes.xtranslate=6.0f;
+            printf("eixo x: %0.2f\n",eixosTransformacoes.xtranslate);
+            if (key == GLUT_KEY_UP) eixosTransformacoes.ytranslate += 0.5f; if(eixosTransformacoes.ytranslate>4.0f) eixosTransformacoes.ytranslate=4.0f;
+            if (key == GLUT_KEY_DOWN) eixosTransformacoes.ytranslate -=0.5f; if (eixosTransformacoes.ytranslate<-4.0f) eixosTransformacoes.ytranslate=-4.0f;
+            printf("eixo y: %0.2f\n",eixosTransformacoes.ytranslate);
+        }else if (transformacaoAtual==transformacao_escala){
+            if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xscale += 0.1f; if(eixosTransformacoes.xscale>1.8f) eixosTransformacoes.xscale = 1.8f;
+            if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xscale -= 0.1f; 0.1f; if(eixosTransformacoes.xscale<0.2f) eixosTransformacoes.xscale = 0.2f;
+            if (key == GLUT_KEY_UP) eixosTransformacoes.yscale += 0.1f; if(eixosTransformacoes.yscale>1.8f) eixosTransformacoes.yscale = 1.8f;
+            if (key == GLUT_KEY_DOWN) eixosTransformacoes.yscale -= 0.1f; if(eixosTransformacoes.yscale<0.2f) eixosTransformacoes.yscale = 0.2f;
+        }
+    }
     glutPostRedisplay();
 }
 
 void teclado(unsigned char key, int x, int y) {
     if (key == 'w' || key == 'W') modoWire = !modoWire;
+    if (key == 't' || key == 'T') if(transformacaoAtual==transformacao_escala) transformacaoAtual = transformacao_translacao; else transformacaoAtual = transformacao_escala;
     if (key == 27) exit(0);
     glutPostRedisplay();
 }
