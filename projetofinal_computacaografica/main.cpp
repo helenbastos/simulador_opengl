@@ -3,6 +3,7 @@
 #include "VGlobais.h"
 #include "objetos.h"
 #include "transformacoes.h"
+#include "projecoes.h"
 
 // ============================================================
 //  Estado de interação com o mouse
@@ -221,6 +222,11 @@ void desenharHUDTopo() {
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
         "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala",
         0.45f, 0.45f, 0.5f);
+    }else if(moduloAtual=mod_projecoes){
+        char buf[64];
+        sprintf(buf, "Projecao: %s  [setas para trocar]", nomeProjecaoAtual());
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
+            buf, 0.15f, 0.15f, 0.2f);
     }
    
 }
@@ -261,16 +267,21 @@ void display() {
                larguraJanela - LARGURA_PAINEL_LATERAL,
                alturaJanela  - ALTURA_PAINEL_RODAPE);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    float aspecto = (float)(larguraJanela - LARGURA_PAINEL_LATERAL) /
-                    (float)(alturaJanela  - ALTURA_PAINEL_RODAPE);
-    gluPerspective(45.0, aspecto, 0.1, 100.0);
+    if(moduloAtual!=mod_projecoes || projecaoAtual==projecao_perspective){
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        float aspecto = (float)(larguraJanela - LARGURA_PAINEL_LATERAL) /   
+                    (float)(alturaJanela  - ALTURA_PAINEL_RODAPE);  
+        gluPerspective(45.0, aspecto, 0.1, 100.0);                              //ver como integrar isso ao de projecoes
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(0, 2, zoom,  0, 0, 0,  0, 1, 0);
-
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        gluLookAt(0, 2, zoom,  0, 0, 0,  0, 1, 0);
+    }else{
+        desenharProjecao(zoom);
+    }
+    
+   
     configurarIluminacao();
 
     glRotatef(anguloX, 1.0f, 0.0f, 0.0f);
@@ -278,11 +289,27 @@ void display() {
 
     if (moduloAtual == mod_objetos) {
         desenharObjeto();
-    }
-
-    //mod_tranformacoes
-    if(moduloAtual==mod_transformacoes){
+    }else if(moduloAtual==mod_transformacoes){
         desenharTransformacao();
+    }else if(moduloAtual==mod_projecoes){
+        // glColor3f(0.8f, 0.3f, 0.3f);
+        // glutSolidTeapot(3.0f);
+        glColor3f(0.2f, 0.7f, 1.0f);
+
+        glPushMatrix();
+            glTranslatef(0, 1, -2);
+            glutSolidCube(1);
+        glPopMatrix();
+
+        glPushMatrix();
+            glTranslatef(-2, -2, -1);
+            glutSolidCube(1);
+        glPopMatrix();
+
+        glPushMatrix();
+            glTranslatef(1, -1, -3);
+            glutSolidCube(1);
+        glPopMatrix();
     }
 
     // ---- Painéis 2D: ocupam a janela inteira ----
@@ -359,22 +386,25 @@ void teclaEspecial(int key, int x, int y) {
         if (key == GLUT_KEY_RIGHT) obj = (obj + 1) % 8;
         if (key == GLUT_KEY_LEFT)  obj = (obj + 7) % 8;
         objetoAtual = (TipoObjeto)obj;
-    }
-    //mod_tranformacoes -- verificar quantos tipos existem de mudanças com a seta
-    if(moduloAtual==mod_transformacoes){
+    }else if(moduloAtual==mod_transformacoes){
         if (transformacaoAtual==transformacao_translacao){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xtranslate +=0.5f; if(eixosTransformacoes.xtranslate>6.0f) eixosTransformacoes.xtranslate=6.0f;
             if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xtranslate -=0.5f; if(eixosTransformacoes.xtranslate<-6.0f) eixosTransformacoes.xtranslate=6.0f;
-            printf("eixo x: %0.2f\n",eixosTransformacoes.xtranslate);
+            //printf("eixo x: %0.2f\n",eixosTransformacoes.xtranslate);
             if (key == GLUT_KEY_UP) eixosTransformacoes.ytranslate += 0.5f; if(eixosTransformacoes.ytranslate>4.0f) eixosTransformacoes.ytranslate=4.0f;
             if (key == GLUT_KEY_DOWN) eixosTransformacoes.ytranslate -=0.5f; if (eixosTransformacoes.ytranslate<-4.0f) eixosTransformacoes.ytranslate=-4.0f;
-            printf("eixo y: %0.2f\n",eixosTransformacoes.ytranslate);
+            //printf("eixo y: %0.2f\n",eixosTransformacoes.ytranslate);
         }else if (transformacaoAtual==transformacao_escala){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xscale += 0.1f; if(eixosTransformacoes.xscale>1.8f) eixosTransformacoes.xscale = 1.8f;
             if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xscale -= 0.1f; 0.1f; if(eixosTransformacoes.xscale<0.2f) eixosTransformacoes.xscale = 0.2f;
             if (key == GLUT_KEY_UP) eixosTransformacoes.yscale += 0.1f; if(eixosTransformacoes.yscale>1.8f) eixosTransformacoes.yscale = 1.8f;
             if (key == GLUT_KEY_DOWN) eixosTransformacoes.yscale -= 0.1f; if(eixosTransformacoes.yscale<0.2f) eixosTransformacoes.yscale = 0.2f;
         }
+    }else if(moduloAtual==mod_projecoes){
+        int proj = (int)projecaoAtual;
+        if (key == GLUT_KEY_RIGHT) proj = (proj + 1) % 3;
+        if (key == GLUT_KEY_LEFT)  proj = (proj + 2) % 3;
+        projecaoAtual = (TipoProjecao)proj;
     }
     glutPostRedisplay();
 }

@@ -20,6 +20,12 @@ typedef enum{
     transformacao_rotacao,
     transformacao_translacao
 }TipoTransformacao;
+    
+typedef enum{
+    projecao_ortho,
+    projecao_frustum,
+    projecao_perspective
+}TipoProjecao;
 
 // Módulos do painel lateral
 typedef enum
@@ -45,6 +51,7 @@ struct ValoresEixosTG {
 extern ValoresEixosTG eixosTransformacoes; 
 extern TipoObjeto objetoAtual;
 extern TipoTransformacao transformacaoAtual;
+extern TipoProjecao projecaoAtual;
 extern Modulo moduloAtual;
 extern int modoWire;
 extern int larguraJanela;
