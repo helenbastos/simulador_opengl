@@ -3,6 +3,7 @@
 #include "VGlobais.h"
 #include "objetos.h"
 #include "transformacoes.h"
+#include "iluminacao.h"
 
 // ============================================================
 //  Estado de interação com o mouse
@@ -155,6 +156,8 @@ void desenharPainelRodape() {
         obterCodigoObjeto(codigo, descricao);
     else if(moduloAtual == mod_transformacoes)
         obterCodigoTransformacao(codigo, descricao);
+    else if (moduloAtual == mod_iluminacao)
+    obterCodigoIluminacao(codigo, descricao);
     else {
         sprintf(codigo,    "// Modulo em construcao");
         //sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
@@ -222,6 +225,14 @@ void desenharHUDTopo() {
         "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala",
         0.45f, 0.45f, 0.5f);
     }
+    else if (moduloAtual == mod_iluminacao) {
+    char buf[128];
+    sprintf(buf, "Luz: %s | L: trocar luz | M: material | S: flat/smooth | Setas: mover luz", nomeLuzAtual());
+    renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20, buf, 0.15f, 0.15f, 0.2f);
+    renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+        "Objetos: setas (no menu Objetos) | +/-: angulo spot | D/d: intensidade difusa",
+        0.45f, 0.45f, 0.5f);
+    }
    
 }
 
@@ -283,6 +294,11 @@ void display() {
     //mod_tranformacoes
     if(moduloAtual==mod_transformacoes){
         desenharTransformacao();
+    }
+
+    //mod_iluminacao
+    if (moduloAtual == mod_iluminacao) {
+        desenharIluminacao();
     }
 
     // ---- Painéis 2D: ocupam a janela inteira ----
@@ -376,6 +392,7 @@ void teclaEspecial(int key, int x, int y) {
             if (key == GLUT_KEY_DOWN) eixosTransformacoes.yscale -= 0.1f; if(eixosTransformacoes.yscale<0.2f) eixosTransformacoes.yscale = 0.2f;
         }
     }
+    if (moduloAtual == mod_iluminacao) processarTeclaEspecialIluminacao(key);
     glutPostRedisplay();
 }
 
@@ -383,6 +400,7 @@ void teclado(unsigned char key, int x, int y) {
     if (key == 'w' || key == 'W') modoWire = !modoWire;
     if (key == 't' || key == 'T') if(transformacaoAtual==transformacao_escala) transformacaoAtual = transformacao_translacao; else transformacaoAtual = transformacao_escala;
     if (key == 27) exit(0);
+    if (moduloAtual == mod_iluminacao) processarTecladoIluminacao(key);
     glutPostRedisplay();
 }
 

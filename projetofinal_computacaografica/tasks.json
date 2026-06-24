@@ -10,6 +10,7 @@
                 "main.cpp",
                 "VGlobais.cpp",
                 "objetos.cpp",
+                "iluminacao.cpp",
                 "-I", "./include",
                 "-L", "./lib/x64",
                 "-lfreeglut", "-lopengl32", "-lglu32"
