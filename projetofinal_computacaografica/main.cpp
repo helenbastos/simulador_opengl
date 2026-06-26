@@ -49,6 +49,49 @@ void renderizarTexto(float x, float y, const char* texto,
     glMatrixMode(GL_MODELVIEW);
 }
 
+void desenharCodigoTransformacao()
+{
+    char valorX[32];
+    char valorY[32];
+
+    sprintf(valorX,"%.2f",eixosTransformacoes.xtranslate);
+    sprintf(valorY,"%.2f",eixosTransformacoes.ytranslate);
+
+    float x = LARGURA_PAINEL_LATERAL + 15;
+    float y = 35;
+
+    renderizarTexto(x,y,
+        "glTranslatef(",
+        0.1f,0.1f,0.1f);
+
+    renderizarTexto(
+        x+100,y,
+        valorX,
+        parametroAtual == param_x ?
+            1.0f : 0.1f,
+        parametroAtual == param_x ?
+            0.8f : 0.5f,
+        0.2f);
+
+    renderizarTexto(x+150,y,", ",
+        0.1f,0.1f,0.1f);
+
+    renderizarTexto(
+        x+170,y,
+        valorY,
+        parametroAtual == param_y ?
+            1.0f : 0.1f,
+        parametroAtual == param_y ?
+            0.8f : 0.5f,
+        0.2f);
+
+    renderizarTexto(
+        x+220,y,
+        ", 0.00);",
+        0.1f,0.1f,0.1f);
+}
+
+
 // ============================================================
 //  desenharPainelLateral — menu fixo à esquerda
 // ============================================================
@@ -154,7 +197,7 @@ void desenharPainelRodape() {
 
     if (moduloAtual == mod_objetos)
         obterCodigoObjeto(codigo, descricao);
-    else if(moduloAtual == mod_transformacoes)
+    else if (moduloAtual == mod_transformacoes)
         obterCodigoTransformacao(codigo, descricao);
     else if (moduloAtual == mod_iluminacao)
     obterCodigoIluminacao(codigo, descricao);
@@ -199,8 +242,17 @@ void desenharPainelRodape() {
     // Textos (cores escuras pro fundo claro)
     renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 55,
         "[ Comando OpenGL ]", 0.2f, 0.4f, 0.8f);
-    renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 35,
-        codigo, 0.1f, 0.5f, 0.2f);
+    if(moduloAtual == mod_transformacoes)
+    {
+        desenharCodigoTransformacao();
+    }
+    else
+    {
+        renderizarTexto(
+            LARGURA_PAINEL_LATERAL + 15,35,codigo,
+            0.1f,0.5f,0.2f);
+    }
+
     renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 15,
         descricao, 0.35f, 0.35f, 0.4f);
 }
@@ -218,7 +270,6 @@ void desenharHUDTopo() {
         "Arrastar: girar | Scroll: zoom | W: wire/solido",
         0.45f, 0.45f, 0.5f);
     }else if(moduloAtual==mod_transformacoes){
-        char buf[64];
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
         "Transformacoes Geometricas [setas para modificar valores dos eixos x e y]", 0.15f, 0.15f, 0.2f);
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
@@ -291,7 +342,7 @@ void display() {
         desenharObjeto();
     }
 
-    //mod_tranformacoes
+    //mod_transformacoes
     if(moduloAtual==mod_transformacoes){
         desenharTransformacao();
     }
@@ -358,7 +409,10 @@ void mouseMove(int x, int y) {
     if (botaoPressionado == GLUT_LEFT_BUTTON && x > LARGURA_PAINEL_LATERAL) {
         anguloY += (x - mouseX) * 0.5f;
         anguloX += (y - mouseY) * 0.5f;
+
+        parametroAtual = param_x;
         eixosTransformacoes.xrotate=anguloX;
+        parametroAtual = param_y;
         eixosTransformacoes.yrotate=anguloY;
     }
     mouseX = x;
@@ -372,11 +426,11 @@ void mouseMove(int x, int y) {
 void teclaEspecial(int key, int x, int y) {
     if (moduloAtual == mod_objetos) {
         int obj = (int)objetoAtual;
-        if (key == GLUT_KEY_RIGHT) obj = (obj + 1) % 8;
-        if (key == GLUT_KEY_LEFT)  obj = (obj + 7) % 8;
+        if (key == GLUT_KEY_RIGHT) obj = (obj + 1) % NUM_OBJETOS;
+        if (key == GLUT_KEY_LEFT)  obj = (obj + 7) % NUM_OBJETOS;
         objetoAtual = (TipoObjeto)obj;
     }
-    //mod_tranformacoes -- verificar quantos tipos existem de mudanças com a seta
+    
     if(moduloAtual==mod_transformacoes){
         if (transformacaoAtual==transformacao_translacao){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xtranslate +=0.5f; if(eixosTransformacoes.xtranslate>6.0f) eixosTransformacoes.xtranslate=6.0f;
@@ -387,7 +441,7 @@ void teclaEspecial(int key, int x, int y) {
             printf("eixo y: %0.2f\n",eixosTransformacoes.ytranslate);
         }else if (transformacaoAtual==transformacao_escala){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xscale += 0.1f; if(eixosTransformacoes.xscale>1.8f) eixosTransformacoes.xscale = 1.8f;
-            if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xscale -= 0.1f; 0.1f; if(eixosTransformacoes.xscale<0.2f) eixosTransformacoes.xscale = 0.2f;
+            if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xscale -= 0.1f; if(eixosTransformacoes.xscale<0.2f) eixosTransformacoes.xscale = 0.2f;
             if (key == GLUT_KEY_UP) eixosTransformacoes.yscale += 0.1f; if(eixosTransformacoes.yscale>1.8f) eixosTransformacoes.yscale = 1.8f;
             if (key == GLUT_KEY_DOWN) eixosTransformacoes.yscale -= 0.1f; if(eixosTransformacoes.yscale<0.2f) eixosTransformacoes.yscale = 0.2f;
         }
@@ -396,10 +450,32 @@ void teclaEspecial(int key, int x, int y) {
     glutPostRedisplay();
 }
 
-void teclado(unsigned char key, int x, int y) {
-    if (key == 'w' || key == 'W') modoWire = !modoWire;
-    if (key == 't' || key == 'T') if(transformacaoAtual==transformacao_escala) transformacaoAtual = transformacao_translacao; else transformacaoAtual = transformacao_escala;
-    if (key == 27) exit(0);
+void teclado(unsigned char key, int x, int y)
+{
+    switch(key)
+    {
+        case 'w':
+        case 'W':
+            modoWire = !modoWire;
+            break;
+
+        case 't':
+        case 'T':
+            if(transformacaoAtual == transformacao_translacao)
+                transformacaoAtual = transformacao_escala;
+            else if(transformacaoAtual == transformacao_escala)
+                transformacaoAtual = transformacao_rotacao;
+            else
+                transformacaoAtual = transformacao_translacao;
+
+            parametroAtual = param_nenhum;
+            break;
+
+        case 27:
+            exit(0);
+            break;
+    }
+
     if (moduloAtual == mod_iluminacao) processarTecladoIluminacao(key);
     glutPostRedisplay();
 }

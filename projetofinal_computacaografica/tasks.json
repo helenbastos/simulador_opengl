@@ -11,6 +11,7 @@
                 "VGlobais.cpp",
                 "objetos.cpp",
                 "iluminacao.cpp",
+                "transformacoes.cpp",
                 "-I", "./include",
                 "-L", "./lib/x64",
                 "-lfreeglut", "-lopengl32", "-lglu32"
