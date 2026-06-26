@@ -1,3 +1,4 @@
+#include "objetos.h"
 #include "iluminacao.h"
 #include <GL/freeglut.h>
 #include <cstdio>
@@ -93,21 +94,17 @@ static const int NUM_MATERIAIS = 4;
 static void aplicarMaterial() {
     MaterialDef& m = materiais[tipoMaterialAtual];
 
-    // Desabilitar COLOR_MATERIAL para glMaterialfv ter efeito
-    glDisable(GL_COLOR_MATERIAL);
-
-    // Reforçar enable de lighting caso a main tenha alterado
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,   m.ambiente);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,   m.difusa);
+    // glColor define ambiente e difusa via COLOR_MATERIAL
+    glColor4fv(m.cor);
+
+    // especular e shininess ainda precisam de glMaterialfv
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,  m.especular);
     glMaterialf (GL_FRONT_AND_BACK, GL_SHININESS, m.brilho);
-
-    // Define cor base via glColor mesmo sem COLOR_MATERIAL
-    // (para objetos que usam glColor internamente, como teapot/cone da GLUT)
-    glColor4fv(m.cor);
 }
 
 // ============================================================
@@ -191,31 +188,8 @@ static void configurarLuz() {
 //  reutilizando objetoAtual de VGlobais.h
 // ============================================================
 static void desenharObjetoAtual() {
-    if (modoWire) {
-        switch (objetoAtual) {
-            case objeto_ponto:    glPointSize(8); glBegin(GL_POINTS); glVertex3f(0,0,0); glEnd(); break;
-            case objeto_linha:    glBegin(GL_LINES); glVertex3f(-1,0,0); glVertex3f(1,0,0); glEnd(); break;
-            case objeto_triangulo: glutWireTetrahedron(); break;
-            case objeto_quadrado: glutWireCube(1.5f); break;
-            case objeto_cubo:     glutWireCube(1.5f); break;
-            case objeto_esfera:   glutWireSphere(1.2, 32, 32); break;
-            case objeto_teapot:   glutWireTeapot(1.2); break;
-            case objeto_cone:     glutWireCone(1.0, 2.0, 32, 32); break;
-        }
-    } else {
-        switch (objetoAtual) {
-            case objeto_ponto:    glPointSize(8); glBegin(GL_POINTS); glVertex3f(0,0,0); glEnd(); break;
-            case objeto_linha:    glBegin(GL_LINES); glVertex3f(-1,0,0); glVertex3f(1,0,0); glEnd(); break;
-            case objeto_triangulo: glutSolidTetrahedron(); break;
-            case objeto_quadrado: glutSolidCube(1.5f); break;
-            case objeto_cubo:     glutSolidCube(1.5f); break;
-            case objeto_esfera:   glutSolidSphere(1.2, 32, 32); break;
-            case objeto_teapot:   glutSolidTeapot(1.2); break;
-            case objeto_cone:     glutSolidCone(1.0, 2.0, 32, 32); break;
-        }
-    }
+    desenharObjeto();
 }
-
 // ============================================================
 //  desenharIndicadorLuz — bolinha amarela na posição da luz
 // ============================================================
@@ -244,12 +218,17 @@ static void desenharIndicadorLuz() {
 //  desenharIluminacao — função principal chamada pela main
 // ============================================================
 
-void desenharIluminacao() {
-    // Reconfigura a luz por cima do que a main definiu em configurarIluminacao()
+void desenharIluminacao()
+{
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     configurarLuz();
     aplicarMaterial();
+
     desenharObjetoAtual();
     desenharIndicadorLuz();
+
+    glPopAttrib();
 }
 
 // ============================================================
@@ -263,7 +242,7 @@ void obterCodigoIluminacao(char* codigo, char* descricao) {
             sprintf(codigo,
                 "glLightfv(GL_LIGHT0, GL_AMBIENT, {0.8,0.8,0.8,1});");
             sprintf(descricao,
-                "Luz Ambiental: ilumina tudo igualmente, sem direcao. Mat: %s", m.nome);
+                "Ilumina tudo igualmente, sem direcao. Material: %s", m.nome);
             break;
 
         case luz_direcional:
@@ -271,7 +250,7 @@ void obterCodigoIluminacao(char* codigo, char* descricao) {
                 "glLightfv(GL_LIGHT0, GL_POSITION, {%.1f,%.1f,%.1f,0.0f});",
                 posLuzX, posLuzY, posLuzZ);
             sprintf(descricao,
-                "Direcional (w=0): raios paralelos. Shading: %s. Mat: %s",
+                "Componente  w=0: raios paralelos. Shading: %s. Material: %s",
                 shadingSmooth ? "GL_SMOOTH" : "GL_FLAT", m.nome);
             break;
 
@@ -280,7 +259,7 @@ void obterCodigoIluminacao(char* codigo, char* descricao) {
                 "glLightfv(GL_LIGHT0, GL_POSITION, {%.1f,%.1f,%.1f,1.0f});",
                 posLuzX, posLuzY, posLuzZ);
             sprintf(descricao,
-                "Pontual (w=1): emite em todas direcoes. Mat: %s, Brilho: %.0f",
+                "Componente w=1: emite em todas direcoes. Material: %s, Brilho: %.0f",
                 m.nome, m.brilho);
             break;
 
@@ -289,7 +268,7 @@ void obterCodigoIluminacao(char* codigo, char* descricao) {
                 "glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, %.1f); // cone de luz",
                 spotCutoff);
             sprintf(descricao,
-                "Spot: cone com cutoff=%.0f graus. Dir aponta para origem. Mat: %s",
+                "Cone de %.0f graus apontando para o objeto. Material: %s",
                 spotCutoff, m.nome);
             break;
     }
