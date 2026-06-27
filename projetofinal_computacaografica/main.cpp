@@ -524,32 +524,6 @@ void teclaEspecial(int key, int x, int y) {
     glutPostRedisplay();
 }
 
-void teclado(unsigned char key, int x, int y) {
-    if (key == 'w' || key == 'W') modoWire = !modoWire;
-    if (key == 't' || key == 'T') if(transformacaoAtual==transformacao_escala) transformacaoAtual = transformacao_translacao; else transformacaoAtual = transformacao_escala;
-    if (key == 27) exit(0);
-    if(moduloAtual == mod_projecoes){
-      if(projecaoAtual==projecao_ortho){
-          if(key=='X' || key == 'x') comandoAtual = xMinOrtho;
-          else if(key=='Y' || key == 'y') comandoAtual = yMinOrtho;
-          else if (key=='N' || key == 'n') comandoAtual = nearOrtho;
-          else if(key=='R' || key == 'r') eixosProjecoes.xMinOrtho = -2; eixosProjecoes.yMinOrtho = -2; eixosProjecoes.nearOrtho = - 300; eixosProjecoes.zoom = 5;
-      }else if(projecaoAtual==projecao_frustum){
-          if(key=='X' || key == 'x') comandoAtual = xMinFrustum;
-          else if(key=='Y' || key == 'y') comandoAtual = yMinFrustum;
-          else if (key=='N' || key == 'n') comandoAtual = nearFrustum;
-          else if(key=='R' || key == 'r') eixosProjecoes.xMinFrustum = -1; eixosProjecoes.yMinFrustum = -1; eixosProjecoes.nearFrustum = 5; eixosProjecoes.zoom = 5;
-      }else if(projecaoAtual==projecao_perspective){
-          if(key=='F' || key == 'f') comandoAtual = farPerspective;
-          else if(key=='Y' || key == 'y') comandoAtual = fovyPerspective;
-          else if (key=='N' || key == 'n') comandoAtual = nearPerspective;
-          else if(key=='R' || key == 'r') eixosProjecoes.fovyPerspective = 45; eixosProjecoes.nearPerspective = 0.1; eixosProjecoes.farPerspective = 100; eixosProjecoes.zoom = 5;
-      }
-    }
-    if (moduloAtual == mod_iluminacao) processarTeclaEspecialIluminacao(key);
-    glutPostRedisplay();
-}
-
 void teclado(unsigned char key, int x, int y)
 {
     switch(key)
@@ -574,6 +548,25 @@ void teclado(unsigned char key, int x, int y)
         case 27:
             exit(0);
             break;
+    }
+
+    if(moduloAtual == mod_projecoes){
+      if(projecaoAtual==projecao_ortho){
+          if(key=='X' || key == 'x') comandoAtual = xMinOrtho;
+          else if(key=='Y' || key == 'y') comandoAtual = yMinOrtho;
+          else if (key=='N' || key == 'n') comandoAtual = nearOrtho;
+          else if(key=='R' || key == 'r') eixosProjecoes.xMinOrtho = -2; eixosProjecoes.yMinOrtho = -2; eixosProjecoes.nearOrtho = - 300; eixosProjecoes.zoom = 5;
+      }else if(projecaoAtual==projecao_frustum){
+          if(key=='X' || key == 'x') comandoAtual = xMinFrustum;
+          else if(key=='Y' || key == 'y') comandoAtual = yMinFrustum;
+          else if (key=='N' || key == 'n') comandoAtual = nearFrustum;
+          else if(key=='R' || key == 'r') eixosProjecoes.xMinFrustum = -1; eixosProjecoes.yMinFrustum = -1; eixosProjecoes.nearFrustum = 5; eixosProjecoes.zoom = 5;
+      }else if(projecaoAtual==projecao_perspective){
+          if(key=='F' || key == 'f') comandoAtual = farPerspective;
+          else if(key=='Y' || key == 'y') comandoAtual = fovyPerspective;
+          else if (key=='N' || key == 'n') comandoAtual = nearPerspective;
+          else if(key=='R' || key == 'r') eixosProjecoes.fovyPerspective = 45; eixosProjecoes.nearPerspective = 0.1; eixosProjecoes.farPerspective = 100; eixosProjecoes.zoom = 5;
+      }
     }
 
     if (moduloAtual == mod_iluminacao) processarTecladoIluminacao(key);
