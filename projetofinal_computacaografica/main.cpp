@@ -3,6 +3,7 @@
 #include "VGlobais.h"
 #include "objetos.h"
 #include "transformacoes.h"
+#include "projecoes.h"
 #include "iluminacao.h"
 #include "texturas.h"
 
@@ -14,6 +15,8 @@ static int   botaoPressionado = -1;
 static float anguloX = 20.0f;
 static float anguloY = -30.0f;
 static float zoom    =  6.0f;
+static bool look_at = false;
+
 
 // Largura do painel lateral (em pixels)
 #define LARGURA_PAINEL_LATERAL 200
@@ -200,6 +203,8 @@ void desenharPainelRodape() {
         obterCodigoObjeto(codigo, descricao);
     else if (moduloAtual == mod_transformacoes)
         obterCodigoTransformacao(codigo, descricao);
+    else if(moduloAtual==mod_projecoes)
+        obterCodigoProjecao(codigo, descricao);
     else if (moduloAtual == mod_iluminacao)
         obterCodigoIluminacao(codigo, descricao);
     else if (moduloAtual == mod_texturas)
@@ -274,10 +279,20 @@ void desenharHUDTopo() {
         0.45f, 0.45f, 0.5f);
     }else if(moduloAtual==mod_transformacoes){
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
-        "Transformacoes Geometricas [setas para modificar valores dos eixos x e y]", 0.15f, 0.15f, 0.2f);
+        "Transformacoes Geometricas ", 0.15f, 0.15f, 0.2f);
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
-        "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala",
+        "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala [setas para modificar valores dos eixos x e y]",
         0.45f, 0.45f, 0.5f);
+    }else if(moduloAtual=mod_projecoes){
+        char buf[100];
+        sprintf(buf, "Projecao: %s  [setas left/right para trocar]", nomeProjecaoAtual());
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
+            buf, 0.15f, 0.15f, 0.2f);
+        obterComandosTeclas(buf);
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+            buf, 0.45f, 0.45f, 0.5f); 
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 60,
+            "Arrastar: Rotacao | Scroll: zoom | [setas up/down para aumentar/diminuir]", 0.45f, 0.45f, 0.5f); 
     }
     else if (moduloAtual == mod_iluminacao) {
     char buf[128];
@@ -334,16 +349,22 @@ void display() {
                larguraJanela - LARGURA_PAINEL_LATERAL,
                alturaJanela  - ALTURA_PAINEL_RODAPE);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    float aspecto = (float)(larguraJanela - LARGURA_PAINEL_LATERAL) /
-                    (float)(alturaJanela  - ALTURA_PAINEL_RODAPE);
-    gluPerspective(45.0, aspecto, 0.1, 100.0);
+    if(moduloAtual!=mod_projecoes){
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        float aspecto = (float)(larguraJanela - LARGURA_PAINEL_LATERAL) /   
+                    (float)(alturaJanela  - ALTURA_PAINEL_RODAPE);  
+        gluPerspective(45.0, aspecto, 0.1, 100.0);                              
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(0, 2, zoom,  0, 0, 0,  0, 1, 0);
-
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        gluLookAt(0, 2, zoom,  0, 0, 0,  0, 1, 0);
+    }else{
+        eixosProjecoes.aspectPerspective = (float)(larguraJanela - LARGURA_PAINEL_LATERAL) /   
+                    (float)(alturaJanela  - ALTURA_PAINEL_RODAPE);  
+        desenharProjecao();
+    }
+    
     configurarIluminacao();
 
     glRotatef(anguloX, 1.0f, 0.0f, 0.0f);
@@ -351,11 +372,10 @@ void display() {
 
     if (moduloAtual == mod_objetos) {
         desenharObjeto();
-    }
-
-    //mod_transformacoes
-    if(moduloAtual==mod_transformacoes){
+    }else if(moduloAtual==mod_transformacoes){
         desenharTransformacao();
+    }else if(moduloAtual==mod_projecoes){
+        desenhaImagemProjecao();
     }
 
     //mod_iluminacao
@@ -417,7 +437,7 @@ void mouseClick(int botao, int estado, int x, int y) {
 
     if (botao == 3) { zoom -= 0.3f; if (zoom < 1.5f) zoom = 1.5f; }
     if (botao == 4) { zoom += 0.3f; if (zoom > 20.0f) zoom = 20.0f; }
-
+    eixosProjecoes.zoom=zoom;
     glutPostRedisplay();
 }
 
@@ -445,24 +465,78 @@ void teclaEspecial(int key, int x, int y) {
         if (key == GLUT_KEY_RIGHT) obj = (obj + 1) % NUM_OBJETOS;
         if (key == GLUT_KEY_LEFT)  obj = (obj + 7) % NUM_OBJETOS;
         objetoAtual = (TipoObjeto)obj;
-    }
-    
-    if(moduloAtual==mod_transformacoes){
+    }else if(moduloAtual==mod_transformacoes){
         if (transformacaoAtual==transformacao_translacao){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xtranslate +=0.5f; if(eixosTransformacoes.xtranslate>6.0f) eixosTransformacoes.xtranslate=6.0f;
             if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xtranslate -=0.5f; if(eixosTransformacoes.xtranslate<-6.0f) eixosTransformacoes.xtranslate=6.0f;
-            printf("eixo x: %0.2f\n",eixosTransformacoes.xtranslate);
+            //printf("eixo x: %0.2f\n",eixosTransformacoes.xtranslate);
             if (key == GLUT_KEY_UP) eixosTransformacoes.ytranslate += 0.5f; if(eixosTransformacoes.ytranslate>4.0f) eixosTransformacoes.ytranslate=4.0f;
             if (key == GLUT_KEY_DOWN) eixosTransformacoes.ytranslate -=0.5f; if (eixosTransformacoes.ytranslate<-4.0f) eixosTransformacoes.ytranslate=-4.0f;
-            printf("eixo y: %0.2f\n",eixosTransformacoes.ytranslate);
+            //printf("eixo y: %0.2f\n",eixosTransformacoes.ytranslate);
         }else if (transformacaoAtual==transformacao_escala){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xscale += 0.1f; if(eixosTransformacoes.xscale>1.8f) eixosTransformacoes.xscale = 1.8f;
             if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xscale -= 0.1f; if(eixosTransformacoes.xscale<0.2f) eixosTransformacoes.xscale = 0.2f;
             if (key == GLUT_KEY_UP) eixosTransformacoes.yscale += 0.1f; if(eixosTransformacoes.yscale>1.8f) eixosTransformacoes.yscale = 1.8f;
             if (key == GLUT_KEY_DOWN) eixosTransformacoes.yscale -= 0.1f; if(eixosTransformacoes.yscale<0.2f) eixosTransformacoes.yscale = 0.2f;
         }
+    }else if(moduloAtual==mod_projecoes){
+        int proj = (int)projecaoAtual;
+        if (key == GLUT_KEY_RIGHT) proj = (proj + 1) % 3;
+        if (key == GLUT_KEY_LEFT)  proj = (proj + 2) % 3;
+        projecaoAtual = (TipoProjecao)proj;
+        //criar variáveis booleanas para modificar cada eixos com as setas up e down
+        if(key==GLUT_KEY_UP) {
+            switch(comandoAtual){
+                case xMinOrtho: eixosProjecoes.xMinOrtho += 0.5; if(eixosProjecoes.xMinOrtho>8) eixosProjecoes.xMinOrtho = 8;
+                    break;
+                case yMinOrtho: eixosProjecoes.yMinOrtho += 0.5; if(eixosProjecoes.yMinOrtho >8) eixosProjecoes.yMinOrtho = 8;
+                    break;
+                case nearOrtho: eixosProjecoes.nearOrtho += 0.5; if(eixosProjecoes.nearOrtho>8) eixosProjecoes.nearOrtho = 8;
+                    break;
+                case xMinFrustum: eixosProjecoes.xMinFrustum +=0.5; if(eixosProjecoes.xMinFrustum>4) eixosProjecoes.xMinFrustum = 4;
+                    break;
+                case yMinFrustum: eixosProjecoes.yMinFrustum +=0.5; if(eixosProjecoes.yMinFrustum>4) eixosProjecoes.yMinFrustum = 4;
+                    break;
+                case nearFrustum: eixosProjecoes.nearFrustum +=0.5; if(eixosProjecoes.nearFrustum>10) eixosProjecoes.nearFrustum = 10;
+                    break;
+                case fovyPerspective: eixosProjecoes.fovyPerspective +=5; if(eixosProjecoes.fovyPerspective>90) eixosProjecoes.fovyPerspective = 90;
+                    break;
+                case nearPerspective: eixosProjecoes.nearPerspective +=5; if(eixosProjecoes.nearPerspective>(eixosProjecoes.zoom)) eixosProjecoes.nearPerspective = (eixosProjecoes.zoom);
+                    break;
+                case farPerspective: eixosProjecoes.farPerspective+=10; if(eixosProjecoes.farPerspective>100) eixosProjecoes.farPerspective = 100;
+                    break;
+                default:
+                    break;
+            }
+        }else if (key==GLUT_KEY_DOWN){
+            switch(comandoAtual){
+                case xMinOrtho:
+                    eixosProjecoes.xMinOrtho -= 0.5; if(eixosProjecoes.xMinOrtho<-8) eixosProjecoes.xMinOrtho = -8;
+                    break;
+                case yMinOrtho:
+                    eixosProjecoes.yMinOrtho -=0.5; if(eixosProjecoes.yMinOrtho <-8) eixosProjecoes.yMinOrtho = -8;
+                    break;
+                case nearOrtho: eixosProjecoes.nearOrtho -= 0.5; if(eixosProjecoes.nearOrtho <-50) eixosProjecoes.nearOrtho = -50;
+                    break;
+                case xMinFrustum: eixosProjecoes.xMinFrustum -=0.5; if(eixosProjecoes.xMinFrustum<-4) eixosProjecoes.xMinFrustum = -4;
+                    break;
+                case yMinFrustum: eixosProjecoes.yMinFrustum -=0.5; if(eixosProjecoes.yMinFrustum<-4) eixosProjecoes.yMinFrustum = -4;
+                    break;
+                case nearFrustum: eixosProjecoes.nearFrustum -=0.5; if(eixosProjecoes.nearFrustum<0.5) eixosProjecoes.nearFrustum = 0.5;
+                    break;
+                case fovyPerspective: eixosProjecoes.fovyPerspective -=0.5; if(eixosProjecoes.fovyPerspective<10) eixosProjecoes.fovyPerspective = 10;
+                    break;
+                case nearPerspective: eixosProjecoes.nearPerspective -=0.5; if(eixosProjecoes.nearPerspective<-0.4) eixosProjecoes.nearPerspective = -0.4;
+                    break;
+                case farPerspective: eixosProjecoes.farPerspective -=0.5; if(eixosProjecoes.farPerspective<(eixosProjecoes.zoom-0.6)) eixosProjecoes.farPerspective = eixosProjecoes.zoom-0.6;
+                    break;
+                default:
+                    break;
+            }
+        }
+
     }
-    if (moduloAtual == mod_iluminacao) processarTeclaEspecialIluminacao(key);
+
     glutPostRedisplay();
 }
 
@@ -490,6 +564,25 @@ void teclado(unsigned char key, int x, int y)
         case 27:
             exit(0);
             break;
+    }
+
+    if(moduloAtual == mod_projecoes){
+      if(projecaoAtual==projecao_ortho){
+          if(key=='X' || key == 'x') comandoAtual = xMinOrtho;
+          else if(key=='Y' || key == 'y') comandoAtual = yMinOrtho;
+          else if (key=='N' || key == 'n') comandoAtual = nearOrtho;
+          else if(key=='R' || key == 'r') eixosProjecoes.xMinOrtho = -2; eixosProjecoes.yMinOrtho = -2; eixosProjecoes.nearOrtho = - 300; eixosProjecoes.zoom = 5;
+      }else if(projecaoAtual==projecao_frustum){
+          if(key=='X' || key == 'x') comandoAtual = xMinFrustum;
+          else if(key=='Y' || key == 'y') comandoAtual = yMinFrustum;
+          else if (key=='N' || key == 'n') comandoAtual = nearFrustum;
+          else if(key=='R' || key == 'r') eixosProjecoes.xMinFrustum = -1; eixosProjecoes.yMinFrustum = -1; eixosProjecoes.nearFrustum = 5; eixosProjecoes.zoom = 5;
+      }else if(projecaoAtual==projecao_perspective){
+          if(key=='F' || key == 'f') comandoAtual = farPerspective;
+          else if(key=='Y' || key == 'y') comandoAtual = fovyPerspective;
+          else if (key=='N' || key == 'n') comandoAtual = nearPerspective;
+          else if(key=='R' || key == 'r') eixosProjecoes.fovyPerspective = 45; eixosProjecoes.nearPerspective = 0.1; eixosProjecoes.farPerspective = 100; eixosProjecoes.zoom = 5;
+      }
     }
 
     if (moduloAtual == mod_iluminacao) processarTecladoIluminacao(key);

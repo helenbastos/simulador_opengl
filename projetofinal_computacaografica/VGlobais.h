@@ -1,3 +1,4 @@
+#include <GL/gl.h>
 #ifndef VGlobais_H
 #define VGlobais_H
 
@@ -31,6 +32,12 @@ typedef enum{
     transformacao_rotacao,
     transformacao_translacao
 }TipoTransformacao;
+    
+typedef enum{
+    projecao_ortho,
+    projecao_frustum,
+    projecao_perspective
+}TipoProjecao;
 
 // Módulos do painel lateral
 typedef enum
@@ -53,6 +60,32 @@ struct ValoresEixosTG {
     float yrotate = -30.0f;
 };
 
+struct ValoresEixosP{
+    GLdouble xMinOrtho = -2;
+    GLdouble yMinOrtho = -2;
+    GLdouble nearOrtho = -50;
+    GLdouble xMinFrustum = -1;
+    GLdouble yMinFrustum = -1;
+    GLdouble nearFrustum = 5;
+    GLdouble fovyPerspective = 45;
+    GLdouble aspectPerspective;
+    GLdouble nearPerspective = 0.1;
+    GLdouble farPerspective = 100;
+    GLdouble zoom = 5;
+};
+
+typedef enum {
+    xMinOrtho,
+    yMinOrtho,
+    nearOrtho,
+    xMinFrustum,
+    yMinFrustum,
+    nearFrustum,
+    fovyPerspective,
+    nearPerspective,
+    farPerspective
+}ComandosProjecoes;
+
 enum ParametroSelecionado {
     param_nenhum,
     param_x,
@@ -62,8 +95,11 @@ enum ParametroSelecionado {
 
 extern ParametroSelecionado parametroAtual;
 extern ValoresEixosTG eixosTransformacoes; 
+extern ValoresEixosP eixosProjecoes;
+extern ComandosProjecoes comandoAtual;
 extern TipoObjeto objetoAtual;
 extern TipoTransformacao transformacaoAtual;
+extern TipoProjecao projecaoAtual;
 extern Modulo moduloAtual;
 extern int modoWire;
 extern int larguraJanela;
