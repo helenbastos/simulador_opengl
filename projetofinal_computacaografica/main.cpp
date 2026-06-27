@@ -13,6 +13,8 @@ static int   botaoPressionado = -1;
 static float anguloX = 20.0f;
 static float anguloY = -30.0f;
 static float zoom    =  6.0f;
+static bool look_at = false;
+
 
 // Largura do painel lateral (em pixels)
 #define LARGURA_PAINEL_LATERAL 200
@@ -156,6 +158,8 @@ void desenharPainelRodape() {
         obterCodigoObjeto(codigo, descricao);
     else if(moduloAtual == mod_transformacoes)
         obterCodigoTransformacao(codigo, descricao);
+    else if(moduloAtual==mod_projecoes)
+        obterCodigoProjecao(codigo, descricao);
     else {
         sprintf(codigo,    "// Modulo em construcao");
         //sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
@@ -224,9 +228,12 @@ void desenharHUDTopo() {
         0.45f, 0.45f, 0.5f);
     }else if(moduloAtual=mod_projecoes){
         char buf[64];
-        sprintf(buf, "Projecao: %s  [setas para trocar]", nomeProjecaoAtual());
+        sprintf(buf, "Projecao: %s  [setas left/right para trocar]", nomeProjecaoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
             buf, 0.15f, 0.15f, 0.2f);
+        obterComandosTeclas(buf);
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+            buf, 0.15f, 0.15f, 0.2f); 
     }
    
 }
@@ -267,21 +274,22 @@ void display() {
                larguraJanela - LARGURA_PAINEL_LATERAL,
                alturaJanela  - ALTURA_PAINEL_RODAPE);
 
-    if(moduloAtual!=mod_projecoes || projecaoAtual==projecao_perspective){
+    if(moduloAtual!=mod_projecoes){
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         float aspecto = (float)(larguraJanela - LARGURA_PAINEL_LATERAL) /   
                     (float)(alturaJanela  - ALTURA_PAINEL_RODAPE);  
-        gluPerspective(45.0, aspecto, 0.1, 100.0);                              //ver como integrar isso ao de projecoes
+        gluPerspective(45.0, aspecto, 0.1, 100.0);                              
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         gluLookAt(0, 2, zoom,  0, 0, 0,  0, 1, 0);
     }else{
-        desenharProjecao(zoom);
+        eixosProjecoes.aspectPerspective = (float)(larguraJanela - LARGURA_PAINEL_LATERAL) /   
+                    (float)(alturaJanela  - ALTURA_PAINEL_RODAPE);  
+        desenharProjecao();
     }
     
-   
     configurarIluminacao();
 
     glRotatef(anguloX, 1.0f, 0.0f, 0.0f);
@@ -292,24 +300,7 @@ void display() {
     }else if(moduloAtual==mod_transformacoes){
         desenharTransformacao();
     }else if(moduloAtual==mod_projecoes){
-        // glColor3f(0.8f, 0.3f, 0.3f);
-        // glutSolidTeapot(3.0f);
-        glColor3f(0.2f, 0.7f, 1.0f);
-
-        glPushMatrix();
-            glTranslatef(0, 1, -2);
-            glutSolidCube(1);
-        glPopMatrix();
-
-        glPushMatrix();
-            glTranslatef(-2, -2, -1);
-            glutSolidCube(1);
-        glPopMatrix();
-
-        glPushMatrix();
-            glTranslatef(1, -1, -3);
-            glutSolidCube(1);
-        glPopMatrix();
+        desenhaImagemProjecao();
     }
 
     // ---- Painéis 2D: ocupam a janela inteira ----
@@ -361,7 +352,7 @@ void mouseClick(int botao, int estado, int x, int y) {
 
     if (botao == 3) { zoom -= 0.3f; if (zoom < 1.5f) zoom = 1.5f; }
     if (botao == 4) { zoom += 0.3f; if (zoom > 20.0f) zoom = 20.0f; }
-
+    eixosProjecoes.zoom=zoom;
     glutPostRedisplay();
 }
 
@@ -405,7 +396,33 @@ void teclaEspecial(int key, int x, int y) {
         if (key == GLUT_KEY_RIGHT) proj = (proj + 1) % 3;
         if (key == GLUT_KEY_LEFT)  proj = (proj + 2) % 3;
         projecaoAtual = (TipoProjecao)proj;
+        //criar variáveis booleanas para modificar cada eixos com as setas up e down
+        if(key==GLUT_KEY_UP) {
+            switch(comandoAtual){
+                case xMinOrtho:
+                    eixosProjecoes.xMinOrtho += 0.5; if(eixosProjecoes.xMinOrtho>8) eixosProjecoes.xMinOrtho = 8;
+                    break;
+                case yMinOrtho:
+                    eixosProjecoes.yMinOrtho +=1;
+                    break;
+                default:
+                    break;
+            }
+        }else if (key==GLUT_KEY_DOWN){
+            switch(comandoAtual){
+                case xMinOrtho:
+                    eixosProjecoes.xMinOrtho -= 0.5; if(eixosProjecoes.xMinOrtho<-8) eixosProjecoes.xMinOrtho = -8;
+                    break;
+                case yMinOrtho:
+                    eixosProjecoes.yMinOrtho -=1;
+                    break;
+                default:
+                    break;
+            }
+        }
+
     }
+
     glutPostRedisplay();
 }
 
@@ -413,6 +430,13 @@ void teclado(unsigned char key, int x, int y) {
     if (key == 'w' || key == 'W') modoWire = !modoWire;
     if (key == 't' || key == 'T') if(transformacaoAtual==transformacao_escala) transformacaoAtual = transformacao_translacao; else transformacaoAtual = transformacao_escala;
     if (key == 27) exit(0);
+    if(projecaoAtual==projecao_ortho){
+        if(key=='X' || key == 'x') comandoAtual = xMinOrtho;
+        else if(key=='Y' || key == 'y') comandoAtual = yMinOrtho;
+    }else if(projecaoAtual==projecao_frustum){
+
+    }else if(projecaoAtual==projecao_perspective){
+    }
     glutPostRedisplay();
 }
 

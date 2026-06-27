@@ -12,7 +12,7 @@ void desenharTransformacao(){
 
 const char* nomeTransformacaoAtual(){
     const char* nomes[] = {
-        "Escala", "Rotação", "Translação"
+        "Escala", "Rotacao", "Translacao"
     };
     return nomes[transformacaoAtual];
 }

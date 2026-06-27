@@ -1,3 +1,4 @@
+#include <GL/gl.h>
 #ifndef VGlobais_H
 #define VGlobais_H
 
@@ -48,7 +49,35 @@ struct ValoresEixosTG {
     float yrotate = -30.0f;
 };
 
+struct ValoresEixosP{
+    GLdouble xMinOrtho = -2;
+    GLdouble yMinOrtho = -2;
+    GLdouble nearOrtho = -300;
+    GLdouble xMinFrustum = -1;
+    GLdouble yMinFrustum = -1;
+    GLdouble nearFrustum = 5;
+    GLdouble fovyPerspective = 45;
+    GLdouble aspectPerspective;
+    GLdouble nearPerspective = 0.1;
+    GLdouble farPerspective = 100;
+    GLdouble zoom = 5;
+};
+
+typedef enum {
+    xMinOrtho,
+    yMinOrtho,
+    nearOrtho,
+    xMinFrustum,
+    yMinFrustum,
+    nearFrustum,
+    fovyPerspective,
+    nearPerspective,
+    farPerspective
+}ComandosProjecoes;
+
 extern ValoresEixosTG eixosTransformacoes; 
+extern ValoresEixosP eixosProjecoes;
+extern ComandosProjecoes comandoAtual;
 extern TipoObjeto objetoAtual;
 extern TipoTransformacao transformacaoAtual;
 extern TipoProjecao projecaoAtual;
