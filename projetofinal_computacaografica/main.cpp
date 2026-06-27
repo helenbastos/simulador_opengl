@@ -222,18 +222,18 @@ void desenharHUDTopo() {
     }else if(moduloAtual==mod_transformacoes){
         char buf[64];
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
-        "Transformacoes Geometricas [setas para modificar valores dos eixos x e y]", 0.15f, 0.15f, 0.2f);
+        "Transformacoes Geometricas ", 0.15f, 0.15f, 0.2f);
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
-        "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala",
+        "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala [setas para modificar valores dos eixos x e y]",
         0.45f, 0.45f, 0.5f);
     }else if(moduloAtual=mod_projecoes){
-        char buf[64];
+        char buf[100];
         sprintf(buf, "Projecao: %s  [setas left/right para trocar]", nomeProjecaoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
             buf, 0.15f, 0.15f, 0.2f);
         obterComandosTeclas(buf);
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
-            buf, 0.15f, 0.15f, 0.2f); 
+            buf, 0.45f, 0.45f, 0.5f); 
     }
    
 }
@@ -403,7 +403,7 @@ void teclaEspecial(int key, int x, int y) {
                     eixosProjecoes.xMinOrtho += 0.5; if(eixosProjecoes.xMinOrtho>8) eixosProjecoes.xMinOrtho = 8;
                     break;
                 case yMinOrtho:
-                    eixosProjecoes.yMinOrtho +=1;
+                    eixosProjecoes.yMinOrtho += 0.5; if(eixosProjecoes.yMinOrtho >48) eixosProjecoes.yMinOrtho = 48;
                     break;
                 default:
                     break;
@@ -414,7 +414,7 @@ void teclaEspecial(int key, int x, int y) {
                     eixosProjecoes.xMinOrtho -= 0.5; if(eixosProjecoes.xMinOrtho<-8) eixosProjecoes.xMinOrtho = -8;
                     break;
                 case yMinOrtho:
-                    eixosProjecoes.yMinOrtho -=1;
+                    eixosProjecoes.yMinOrtho -=0.5; if(eixosProjecoes.yMinOrtho <-48) eixosProjecoes.yMinOrtho = -48;
                     break;
                 default:
                     break;
