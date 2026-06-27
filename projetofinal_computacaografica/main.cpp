@@ -234,6 +234,8 @@ void desenharHUDTopo() {
         obterComandosTeclas(buf);
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
             buf, 0.45f, 0.45f, 0.5f); 
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 60,
+            "Arrastar: Rotacao | Scroll: zoom | [setas up/down para aumentar/diminuir]", 0.45f, 0.45f, 0.5f); 
     }
    
 }
@@ -399,11 +401,23 @@ void teclaEspecial(int key, int x, int y) {
         //criar variáveis booleanas para modificar cada eixos com as setas up e down
         if(key==GLUT_KEY_UP) {
             switch(comandoAtual){
-                case xMinOrtho:
-                    eixosProjecoes.xMinOrtho += 0.5; if(eixosProjecoes.xMinOrtho>8) eixosProjecoes.xMinOrtho = 8;
+                case xMinOrtho: eixosProjecoes.xMinOrtho += 0.5; if(eixosProjecoes.xMinOrtho>8) eixosProjecoes.xMinOrtho = 8;
                     break;
-                case yMinOrtho:
-                    eixosProjecoes.yMinOrtho += 0.5; if(eixosProjecoes.yMinOrtho >48) eixosProjecoes.yMinOrtho = 48;
+                case yMinOrtho: eixosProjecoes.yMinOrtho += 0.5; if(eixosProjecoes.yMinOrtho >8) eixosProjecoes.yMinOrtho = 8;
+                    break;
+                case nearOrtho: eixosProjecoes.nearOrtho += 0.5; if(eixosProjecoes.nearOrtho>8) eixosProjecoes.nearOrtho = 8;
+                    break;
+                case xMinFrustum: eixosProjecoes.xMinFrustum +=0.5; if(eixosProjecoes.xMinFrustum>4) eixosProjecoes.xMinFrustum = 4;
+                    break;
+                case yMinFrustum: eixosProjecoes.yMinFrustum +=0.5; if(eixosProjecoes.yMinFrustum>4) eixosProjecoes.yMinFrustum = 4;
+                    break;
+                case nearFrustum: eixosProjecoes.nearFrustum +=0.5; if(eixosProjecoes.nearFrustum>10) eixosProjecoes.nearFrustum = 10;
+                    break;
+                case fovyPerspective: eixosProjecoes.fovyPerspective +=5; if(eixosProjecoes.fovyPerspective>90) eixosProjecoes.fovyPerspective = 90;
+                    break;
+                case nearPerspective: eixosProjecoes.nearPerspective +=5; if(eixosProjecoes.nearPerspective>(eixosProjecoes.zoom)) eixosProjecoes.nearPerspective = (eixosProjecoes.zoom);
+                    break;
+                case farPerspective: eixosProjecoes.farPerspective+=10; if(eixosProjecoes.farPerspective>100) eixosProjecoes.farPerspective = 100;
                     break;
                 default:
                     break;
@@ -414,7 +428,21 @@ void teclaEspecial(int key, int x, int y) {
                     eixosProjecoes.xMinOrtho -= 0.5; if(eixosProjecoes.xMinOrtho<-8) eixosProjecoes.xMinOrtho = -8;
                     break;
                 case yMinOrtho:
-                    eixosProjecoes.yMinOrtho -=0.5; if(eixosProjecoes.yMinOrtho <-48) eixosProjecoes.yMinOrtho = -48;
+                    eixosProjecoes.yMinOrtho -=0.5; if(eixosProjecoes.yMinOrtho <-8) eixosProjecoes.yMinOrtho = -8;
+                    break;
+                case nearOrtho: eixosProjecoes.nearOrtho -= 0.5; if(eixosProjecoes.nearOrtho <-50) eixosProjecoes.nearOrtho = -50;
+                    break;
+                case xMinFrustum: eixosProjecoes.xMinFrustum -=0.5; if(eixosProjecoes.xMinFrustum<-4) eixosProjecoes.xMinFrustum = -4;
+                    break;
+                case yMinFrustum: eixosProjecoes.yMinFrustum -=0.5; if(eixosProjecoes.yMinFrustum<-4) eixosProjecoes.yMinFrustum = -4;
+                    break;
+                case nearFrustum: eixosProjecoes.nearFrustum -=0.5; if(eixosProjecoes.nearFrustum<0.5) eixosProjecoes.nearFrustum = 0.5;
+                    break;
+                case fovyPerspective: eixosProjecoes.fovyPerspective -=0.5; if(eixosProjecoes.fovyPerspective<10) eixosProjecoes.fovyPerspective = 10;
+                    break;
+                case nearPerspective: eixosProjecoes.nearPerspective -=0.5; if(eixosProjecoes.nearPerspective<-0.4) eixosProjecoes.nearPerspective = -0.4;
+                    break;
+                case farPerspective: eixosProjecoes.farPerspective -=0.5; if(eixosProjecoes.farPerspective<(eixosProjecoes.zoom-0.6)) eixosProjecoes.farPerspective = eixosProjecoes.zoom-0.6;
                     break;
                 default:
                     break;
@@ -433,9 +461,18 @@ void teclado(unsigned char key, int x, int y) {
     if(projecaoAtual==projecao_ortho){
         if(key=='X' || key == 'x') comandoAtual = xMinOrtho;
         else if(key=='Y' || key == 'y') comandoAtual = yMinOrtho;
+        else if (key=='N' || key == 'n') comandoAtual = nearOrtho;
+        else if(key=='R' || key == 'r') eixosProjecoes.xMinOrtho = -2; eixosProjecoes.yMinOrtho = -2; eixosProjecoes.nearOrtho = - 300; eixosProjecoes.zoom = 5;
     }else if(projecaoAtual==projecao_frustum){
-
+        if(key=='X' || key == 'x') comandoAtual = xMinFrustum;
+        else if(key=='Y' || key == 'y') comandoAtual = yMinFrustum;
+        else if (key=='N' || key == 'n') comandoAtual = nearFrustum;
+        else if(key=='R' || key == 'r') eixosProjecoes.xMinFrustum = -1; eixosProjecoes.yMinFrustum = -1; eixosProjecoes.nearFrustum = 5; eixosProjecoes.zoom = 5;
     }else if(projecaoAtual==projecao_perspective){
+        if(key=='F' || key == 'f') comandoAtual = farPerspective;
+        else if(key=='Y' || key == 'y') comandoAtual = fovyPerspective;
+        else if (key=='N' || key == 'n') comandoAtual = nearPerspective;
+        else if(key=='R' || key == 'r') eixosProjecoes.fovyPerspective = 45; eixosProjecoes.nearPerspective = 0.1; eixosProjecoes.farPerspective = 100; eixosProjecoes.zoom = 5;
     }
     glutPostRedisplay();
 }

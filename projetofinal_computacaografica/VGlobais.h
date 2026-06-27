@@ -52,7 +52,7 @@ struct ValoresEixosTG {
 struct ValoresEixosP{
     GLdouble xMinOrtho = -2;
     GLdouble yMinOrtho = -2;
-    GLdouble nearOrtho = -300;
+    GLdouble nearOrtho = -50;
     GLdouble xMinFrustum = -1;
     GLdouble yMinFrustum = -1;
     GLdouble nearFrustum = 5;
