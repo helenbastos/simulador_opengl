@@ -1,10 +1,10 @@
 #ifndef TEXTURAS_H
 #define TEXTURAS_H
 
-// Tipos de textura
 typedef enum {
     tex_1d = 0,
-    tex_2d
+    tex_2d,
+    tex_imagem
 } TipoTextura;
 
 // Padrões de textura procedural

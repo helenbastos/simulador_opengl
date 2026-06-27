@@ -283,7 +283,7 @@ void desenharHUDTopo() {
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
         "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala [setas para modificar valores dos eixos x e y]",
         0.45f, 0.45f, 0.5f);
-    }else if(moduloAtual=mod_projecoes){
+    }else if(moduloAtual==mod_projecoes){
         char buf[100];
         sprintf(buf, "Projecao: %s  [setas left/right para trocar]", nomeProjecaoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
@@ -536,6 +536,7 @@ void teclaEspecial(int key, int x, int y) {
         }
 
     }
+    if (moduloAtual == mod_iluminacao) processarTeclaEspecialIluminacao(key);
 
     glutPostRedisplay();
 }
