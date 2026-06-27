@@ -5,16 +5,27 @@
 
 typedef enum{
 
+   // ---- 2D ----
     objeto_ponto = 0,
     objeto_linha,
     objeto_triangulo,
     objeto_quadrado,
+    objeto_poligono,
+    objeto_circulo,
+
+    // ---- 3D ----
     objeto_cubo,
     objeto_esfera,
+    objeto_cone,
     objeto_teapot,
-    objeto_cone
+    objeto_torus,
+    objeto_cilindro,
+    objeto_octaedro,
+    objeto_icosaedro
 
 } TipoObjeto;
+
+#define NUM_OBJETOS 14
 
 typedef enum{
     transformacao_escala,
@@ -75,6 +86,14 @@ typedef enum {
     farPerspective
 }ComandosProjecoes;
 
+enum ParametroSelecionado {
+    param_nenhum,
+    param_x,
+    param_y
+};
+
+
+extern ParametroSelecionado parametroAtual;
 extern ValoresEixosTG eixosTransformacoes; 
 extern ValoresEixosP eixosProjecoes;
 extern ComandosProjecoes comandoAtual;
