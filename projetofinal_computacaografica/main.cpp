@@ -280,7 +280,7 @@ void desenharHUDTopo() {
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
         "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala [setas para modificar valores dos eixos x e y]",
         0.45f, 0.45f, 0.5f);
-    }else if(moduloAtual=mod_projecoes){
+    }else if(moduloAtual==mod_projecoes){
         char buf[100];
         sprintf(buf, "Projecao: %s  [setas left/right para trocar]", nomeProjecaoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
@@ -453,10 +453,8 @@ void teclaEspecial(int key, int x, int y) {
         if (transformacaoAtual==transformacao_translacao){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xtranslate +=0.5f; if(eixosTransformacoes.xtranslate>6.0f) eixosTransformacoes.xtranslate=6.0f;
             if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xtranslate -=0.5f; if(eixosTransformacoes.xtranslate<-6.0f) eixosTransformacoes.xtranslate=6.0f;
-            //printf("eixo x: %0.2f\n",eixosTransformacoes.xtranslate);
             if (key == GLUT_KEY_UP) eixosTransformacoes.ytranslate += 0.5f; if(eixosTransformacoes.ytranslate>4.0f) eixosTransformacoes.ytranslate=4.0f;
             if (key == GLUT_KEY_DOWN) eixosTransformacoes.ytranslate -=0.5f; if (eixosTransformacoes.ytranslate<-4.0f) eixosTransformacoes.ytranslate=-4.0f;
-            //printf("eixo y: %0.2f\n",eixosTransformacoes.ytranslate);
         }else if (transformacaoAtual==transformacao_escala){
             if (key == GLUT_KEY_RIGHT) eixosTransformacoes.xscale += 0.1f; if(eixosTransformacoes.xscale>1.8f) eixosTransformacoes.xscale = 1.8f;
             if (key == GLUT_KEY_LEFT)  eixosTransformacoes.xscale -= 0.1f; if(eixosTransformacoes.xscale<0.2f) eixosTransformacoes.xscale = 0.2f;
@@ -519,6 +517,8 @@ void teclaEspecial(int key, int x, int y) {
             }
         }
 
+    }else if (moduloAtual==mod_iluminacao){
+        processarTeclaEspecialIluminacao(key);
     }
 
     glutPostRedisplay();

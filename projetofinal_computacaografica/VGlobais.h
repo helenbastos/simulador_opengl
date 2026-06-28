@@ -92,7 +92,6 @@ enum ParametroSelecionado {
     param_y
 };
 
-
 extern ParametroSelecionado parametroAtual;
 extern ValoresEixosTG eixosTransformacoes; 
 extern ValoresEixosP eixosProjecoes;
