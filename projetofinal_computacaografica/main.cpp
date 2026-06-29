@@ -5,7 +5,6 @@
 #include "transformacoes.h"
 #include "projecoes.h"
 #include "iluminacao.h"
-#include "texturas.h"
 
 // ============================================================
 //  Estado de interação com o mouse
@@ -207,8 +206,6 @@ void desenharPainelRodape() {
         obterCodigoProjecao(codigo, descricao);
     else if (moduloAtual == mod_iluminacao)
         obterCodigoIluminacao(codigo, descricao);
-    else if (moduloAtual == mod_texturas)
-        obterCodigoTextura(codigo, descricao);
     else {
         sprintf(codigo,    "// Modulo em construcao");
         //sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
@@ -250,16 +247,16 @@ void desenharPainelRodape() {
     // Textos (cores escuras pro fundo claro)
     renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 55,
         "[ Comando OpenGL ]", 0.2f, 0.4f, 0.8f);
-    // if(moduloAtual == mod_transformacoes)
-    // {
-    //     desenharCodigoTransformacao();
-    // }
-    // else
-    // {
-    renderizarTexto(
-        LARGURA_PAINEL_LATERAL + 15,35,codigo,
-        0.1f,0.5f,0.2f);
-    // }
+    if(moduloAtual == mod_transformacoes)
+    {
+        desenharCodigoTransformacao();
+    }
+    else
+    {
+        renderizarTexto(
+            LARGURA_PAINEL_LATERAL + 15,35,codigo,
+            0.1f,0.5f,0.2f);
+    }
 
     renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 15,
         descricao, 0.35f, 0.35f, 0.4f);
@@ -269,9 +266,8 @@ void desenharPainelRodape() {
 //  desenharHUDTopo — informações rápidas acima da viewport
 // ============================================================
 void desenharHUDTopo() {
-    char buf[128];
     if (moduloAtual == mod_objetos) {
-        //char buf[64];
+        char buf[64];
         sprintf(buf, "Objeto: %s  [setas para trocar]", nomeObjetoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
             buf, 0.15f, 0.15f, 0.2f);
@@ -279,18 +275,13 @@ void desenharHUDTopo() {
         "Arrastar: girar | Scroll: zoom | W: wire/solido",
         0.45f, 0.45f, 0.5f);
     }else if(moduloAtual==mod_transformacoes){
-        //char buf[64];
-        snprintf(buf, 64, "Transformacoes Geometricas: %s",nomeTransformacaoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
-        buf, 0.15f, 0.15f, 0.2f);
+        "Transformacoes Geometricas ", 0.15f, 0.15f, 0.2f);
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
         "Arrastar: Rotacao | Scroll: zoom | T: Translacao/Escala [setas para modificar valores dos eixos x e y]",
         0.45f, 0.45f, 0.5f);
-        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 60,
-            "R: Resetar", 0.45f, 0.45f, 0.5f); 
-   
     }else if(moduloAtual==mod_projecoes){
-        //char buf[100];
+        char buf[100];
         sprintf(buf, "Projecao: %s  [setas left/right para trocar]", nomeProjecaoAtual());
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
             buf, 0.15f, 0.15f, 0.2f);
@@ -301,20 +292,12 @@ void desenharHUDTopo() {
             "Arrastar: Rotacao | Scroll: zoom | [setas up/down para aumentar/diminuir]", 0.45f, 0.45f, 0.5f); 
     }
     else if (moduloAtual == mod_iluminacao) {
-    //char buf[128];
-        sprintf(buf, "Luz: %s | L: trocar luz | M: material | S: flat/smooth | Setas: mover luz", nomeLuzAtual());
-        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20, buf, 0.15f, 0.15f, 0.2f);
-        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
-            "Objetos: setas (no menu Objetos) | +/-: angulo spot | D/d: intensidade difusa",
-            0.45f, 0.45f, 0.5f);
-    }
-    else if (moduloAtual == mod_texturas) {
-        char buf[128];
-        sprintf(buf, "Textura %s | T: 1D/2D | P: padrao | F: filtro | M: modo", nomeTipoTexturaAtual());
-        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20, buf, 0.15f, 0.15f, 0.2f);
-        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
-            "Objetos: trocar no menu Objetos | W: wire/solido",
-            0.45f, 0.45f, 0.5f);
+    char buf[128];
+    sprintf(buf, "Luz: %s | L: trocar luz | M: material | S: flat/smooth | Setas: mover luz", nomeLuzAtual());
+    renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20, buf, 0.15f, 0.15f, 0.2f);
+    renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+        "Objetos: setas (no menu Objetos) | +/-: angulo spot | D/d: intensidade difusa",
+        0.45f, 0.45f, 0.5f);
     }
    
 }
@@ -387,11 +370,6 @@ void display() {
     //mod_iluminacao
     if (moduloAtual == mod_iluminacao) {
         desenharIluminacao();
-    }
-
-    //mod_texturas
-    if (moduloAtual == mod_texturas) {
-    desenharTexturas();
     }
 
     // ---- Painéis 2D: ocupam a janela inteira ----
@@ -542,7 +520,6 @@ void teclaEspecial(int key, int x, int y) {
     }else if (moduloAtual==mod_iluminacao){
         processarTeclaEspecialIluminacao(key);
     }
-    if (moduloAtual == mod_iluminacao) processarTeclaEspecialIluminacao(key);
 
     glutPostRedisplay();
 }
@@ -559,23 +536,15 @@ void teclado(unsigned char key, int x, int y)
         case 't':
         case 'T':
             if(transformacaoAtual == transformacao_translacao)
-                transformacaoAtual = transformacao_escala; 
+                transformacaoAtual = transformacao_escala;
             else if(transformacaoAtual == transformacao_escala)
-                transformacaoAtual = transformacao_translacao;
-            else if (transformacaoAtual == transformacao_rotacao)
+                transformacaoAtual = transformacao_rotacao;
+            else
                 transformacaoAtual = transformacao_translacao;
 
             parametroAtual = param_nenhum;
             break;
-        case 'r':
-        case 'R':
-            if(moduloAtual==mod_transformacoes){
-                eixosTransformacoes.xscale = 1.0f; eixosTransformacoes.yscale = 1.0f;
-                eixosTransformacoes.xtranslate = 0.0f; eixosTransformacoes.ytranslate = 0.0f;
-                eixosTransformacoes.xrotate = 20.0f; eixosTransformacoes.yrotate = -30.0f;
-                anguloX = 20.0f; anguloY = -30.0f;
-            }
-            break;
+
         case 27:
             exit(0);
             break;
@@ -602,7 +571,6 @@ void teclado(unsigned char key, int x, int y)
 
     if (moduloAtual == mod_iluminacao) processarTecladoIluminacao(key);
     glutPostRedisplay();
-    if (moduloAtual == mod_texturas) processarTecladoTexturas(key);
 }
 
 // ============================================================
@@ -611,7 +579,6 @@ void teclado(unsigned char key, int x, int y)
 void init() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);  // branco
     glEnable(GL_DEPTH_TEST);
-    inicializarTexturas();
 }
 
 // ============================================================
