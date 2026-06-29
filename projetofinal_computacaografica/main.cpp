@@ -5,6 +5,7 @@
 #include "transformacoes.h"
 #include "projecoes.h"
 #include "iluminacao.h"
+#include "texturas.h"
 
 // ============================================================
 //  Estado de interação com o mouse
@@ -206,6 +207,8 @@ void desenharPainelRodape() {
         obterCodigoProjecao(codigo, descricao);
     else if (moduloAtual == mod_iluminacao)
         obterCodigoIluminacao(codigo, descricao);
+    else if (moduloAtual == mod_texturas)
+        obterCodigoTextura(codigo, descricao);
     else {
         sprintf(codigo,    "// Modulo em construcao");
         //sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
@@ -299,6 +302,14 @@ void desenharHUDTopo() {
         "Objetos: setas (no menu Objetos) | +/-: angulo spot | D/d: intensidade difusa",
         0.45f, 0.45f, 0.5f);
     }
+    else if (moduloAtual == mod_texturas) {
+        char buf[128];
+        sprintf(buf, "Textura %s | T: 1D/2D | P: padrao | F: filtro | M: modo", nomeTipoTexturaAtual());
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20, buf, 0.15f, 0.15f, 0.2f);
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+            "Objetos: trocar no menu Objetos | W: wire/solido",
+            0.45f, 0.45f, 0.5f);
+    }
    
 }
 
@@ -370,6 +381,11 @@ void display() {
     //mod_iluminacao
     if (moduloAtual == mod_iluminacao) {
         desenharIluminacao();
+    }
+
+    //mod_texturas
+    if (moduloAtual == mod_texturas) {
+    desenharTexturas();
     }
 
     // ---- Painéis 2D: ocupam a janela inteira ----
@@ -520,6 +536,7 @@ void teclaEspecial(int key, int x, int y) {
     }else if (moduloAtual==mod_iluminacao){
         processarTeclaEspecialIluminacao(key);
     }
+    if (moduloAtual == mod_iluminacao) processarTeclaEspecialIluminacao(key);
 
     glutPostRedisplay();
 }
@@ -571,6 +588,7 @@ void teclado(unsigned char key, int x, int y)
 
     if (moduloAtual == mod_iluminacao) processarTecladoIluminacao(key);
     glutPostRedisplay();
+    if (moduloAtual == mod_texturas) processarTecladoTexturas(key);
 }
 
 // ============================================================
@@ -579,6 +597,7 @@ void teclado(unsigned char key, int x, int y)
 void init() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);  // branco
     glEnable(GL_DEPTH_TEST);
+    inicializarTexturas();
 }
 
 // ============================================================
