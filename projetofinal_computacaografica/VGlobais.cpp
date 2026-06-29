@@ -6,7 +6,7 @@ Modulo     moduloAtual   = mod_objetos;
 ValoresEixosTG eixosTransformacoes;
 ValoresEixosP eixosProjecoes;
 ComandosProjecoes comandoAtual = xMinOrtho;
-TipoTransformacao transformacaoAtual = transformacao_escala;
+TipoTransformacao transformacaoAtual = transformacao_rotacao;
 TipoProjecao projecaoAtual = projecao_ortho; 
 
 ParametroSelecionado parametroAtual = param_x;
