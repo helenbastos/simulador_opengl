@@ -13,6 +13,7 @@
                 "iluminacao.cpp",
                 "transformacoes.cpp",
                 "texturas.cpp",
+                "curvas.cpp",
                 "-I", "./include",
                 "-L", "./lib/x64",
                 "-lfreeglut", "-lopengl32", "-lglu32"

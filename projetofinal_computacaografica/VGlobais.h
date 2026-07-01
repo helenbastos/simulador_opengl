@@ -92,6 +92,47 @@ enum ParametroSelecionado {
     param_y
 };
 
+#define MAX_PONTOS_CONTROLE 4
+
+struct ValoresCurva
+{
+    float pontosX[MAX_PONTOS_CONTROLE];
+    float pontosY[MAX_PONTOS_CONTROLE];
+    float pontosZ[MAX_PONTOS_CONTROLE];
+
+    int pontoSelecionado;
+
+    int numSegmentos;
+
+    int mostrarPoligono;
+
+    float espessuraLinha;
+
+    int corAtual;
+
+    bool modoRender;
+};
+
+#define MAX_LINHAS_CODIGO 6
+#define MAX_LINHAS_INFO   6
+#define MAX_LINHAS_ATALHO 20
+
+struct PainelOpenGL {
+    char titulo[64];
+
+    char codigo[MAX_LINHAS_CODIGO][64];
+    int  numLinhasCodigo;
+
+    char info[MAX_LINHAS_INFO][64];
+    int  numLinhasInfo;
+
+    char atalhos[MAX_LINHAS_ATALHO][64];
+    int  numLinhasAtalhos;
+};
+
+
+
+extern ValoresCurva curvaAtual;
 extern ParametroSelecionado parametroAtual;
 extern ValoresEixosTG eixosTransformacoes; 
 extern ValoresEixosP eixosProjecoes;
@@ -104,5 +145,22 @@ extern int modoWire;
 extern int larguraJanela;
 extern int alturaJanela;
 
+
+//==============================================================
+// FUNÇÕES DO PAINEL
+//==============================================================
+
+void limparPainel();
+// Define o título do painel
+void definirTituloPainel(const char* titulo);
+
+// Adiciona uma linha de código (até MAX_LINHAS_CODIGO)
+void adicionarLinhaCodigo(const char* linha);
+
+// Adiciona uma linha de info/parâmetro (até MAX_LINHAS_INFO)
+void adicionarLinhaInfo(const char* linha);
+
+// Adiciona uma linha de atalho de teclado (até MAX_LINHAS_ATALHO)
+void adicionarLinhaAtalho(const char* linha);
 
 #endif

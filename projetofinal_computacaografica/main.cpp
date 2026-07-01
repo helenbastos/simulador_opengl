@@ -6,6 +6,7 @@
 #include "projecoes.h"
 #include "iluminacao.h"
 #include "texturas.h"
+#include "curvas.h"
 
 // ============================================================
 //  Estado de interação com o mouse
@@ -209,10 +210,63 @@ void desenharPainelRodape() {
         obterCodigoIluminacao(codigo, descricao);
     else if (moduloAtual == mod_texturas)
         obterCodigoTextura(codigo, descricao);
-    else {
-        sprintf(codigo,    "// Modulo em construcao");
-        //sprintf(descricao, "Selecione 'Objetos' no menu lateral para ver o codigo.");
+    else if (moduloAtual == mod_curvas)
+    {
+        // Gera strings dinâmicas atualizadas a cada frame
+        obterCodigoCurva(codigo, descricao);
+ 
+        // --- Fundo e borda do rodapé (igual ao existente) ---
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        gluOrtho2D(0, larguraJanela, 0, alturaJanela);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_DEPTH_TEST);
+ 
+        glColor3f(0.92f, 0.92f, 0.94f);
+        glBegin(GL_QUADS);
+            glVertex2f(LARGURA_PAINEL_LATERAL, 0);
+            glVertex2f(larguraJanela,          0);
+            glVertex2f(larguraJanela,          ALTURA_PAINEL_RODAPE);
+            glVertex2f(LARGURA_PAINEL_LATERAL, ALTURA_PAINEL_RODAPE);
+        glEnd();
+ 
+        glColor3f(0.7f, 0.7f, 0.75f);
+        glBegin(GL_LINES);
+            glVertex2f(LARGURA_PAINEL_LATERAL, ALTURA_PAINEL_RODAPE);
+            glVertex2f(larguraJanela,          ALTURA_PAINEL_RODAPE);
+        glEnd();
+ 
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHTING);
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+ 
+        // --- Linha 1: label do modo ---
+        const char* nomeModo =
+            (modoCurvaAtual == modo_curva_1d)   ? "[ Bezier 1D ]"   :
+            (modoCurvaAtual == modo_superficie)  ? "[ Superficie ]"  :
+                                                   "[ Revolucao ]";
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 60,
+            nomeModo, 0.2f, 0.4f, 0.8f);
+ 
+        // --- Linha 2: comando OpenGL dinâmico (verde) ---
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 40,
+            codigo, 0.0f, 0.5f, 0.15f);
+ 
+        // --- Linha 3: parâmetros numéricos atuais (cinza) ---
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, 18,
+            descricao, 0.3f, 0.3f, 0.4f);
+ 
+        return;   // evita o desenho duplo do bloco padrão abaixo
     }
+    
+
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -315,8 +369,51 @@ void desenharHUDTopo() {
         renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
             "Objetos: trocar no menu Objetos | W: wire/solido",
             0.45f, 0.45f, 0.5f);
+    }else if (moduloAtual == mod_curvas)
+{
+    if (modoCurvaAtual == modo_curva_1d)
+    {
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
+            "Modo: Curva de Bezier ",
+            0.15f,0.15f,0.2f);
+
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+            "Mouse: mover pontos | G R M C +/- [ ] |Setas Esq/Dir: formas | B: superficie",
+            0.45f,0.45f,0.5f);
     }
-   
+    else if (modoCurvaAtual == modo_superficie)
+    {
+        char txt[80];
+        sprintf(txt,"Altura: %.1f",alturaSuperficie);
+
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
+            "Modo: Superficie de Bezier",
+            0.15f,0.15f,0.2f);
+
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+            "UP/DOWN: altura | +/- resolucao | C | R | B: revolucao | V: curva",
+            0.45f,0.45f,0.5f);
+
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 60,
+            txt,0.2f,0.45f,0.75f);
+    }
+    else if (modoCurvaAtual == modo_revolucao)
+    {
+        char txt[80];
+        sprintf(txt,"Passo angular: %d graus",passoRevolucao);
+
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 20,
+            "Modo: Solido de Revolucao",
+            0.15f,0.15f,0.2f);
+
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 40,
+            "UP/DOWN: fatias | Mouse: editar perfil | C | Setas Esq/Dir: formas | V: curva",
+            0.45f,0.45f,0.5f);
+
+        renderizarTexto(LARGURA_PAINEL_LATERAL + 15, alturaJanela - 60,
+            txt,0.2f,0.45f,0.75f);
+    }
+  }
 }
 
 // ============================================================
@@ -382,6 +479,28 @@ void display() {
         desenharTransformacao();
     }else if(moduloAtual==mod_projecoes){
         desenhaImagemProjecao();
+    } else if (moduloAtual == mod_curvas) {
+ 
+        switch (modoCurvaAtual) {
+ 
+            case modo_curva_1d:
+                // Curva de Bézier 1D clássica
+                desenharPoligonoControle();
+                desenharCurvaBezier();
+                desenharPontosControle();
+                break;
+ 
+            case modo_superficie:
+                // Patch de superfície Bézier bicúbica (glMap2f)
+                desenharSuperficieBezier();
+                break;
+ 
+            case modo_revolucao:
+                // Sólido de revolução gerado a partir do perfil
+                // O perfil pode ser editado com o mouse (modo_curva_1d)
+                desenharSolidoRevolucao();
+                break;
+        }
     }
 
     //mod_iluminacao
@@ -542,8 +661,46 @@ void teclaEspecial(int key, int x, int y) {
     }else if (moduloAtual==mod_iluminacao){
         processarTeclaEspecialIluminacao(key);
     }
-    if (moduloAtual == mod_iluminacao) processarTeclaEspecialIluminacao(key);
+    if (moduloAtual == mod_iluminacao){ 
+        processarTeclaEspecialIluminacao(key);
+    }else if (moduloAtual == mod_curvas) {
 
+        if (modoCurvaAtual == modo_curva_1d || modoCurvaAtual == modo_revolucao) {
+            if (key == GLUT_KEY_RIGHT) {
+                alternarPreset(1);  // Avança para o próximo preset (Arco -> Onda -> Diagonal)
+                preencherPainelCurvas(); // Atualiza os textos do painel lateral
+            }
+            if (key == GLUT_KEY_LEFT) {
+                alternarPreset(-1); // Volta o preset
+                preencherPainelCurvas();
+            }
+        }
+
+        if (modoCurvaAtual == modo_superficie)
+        {
+            if (key == GLUT_KEY_UP)
+                ajustarAlturaSuperficie(0.1f);
+
+            if (key == GLUT_KEY_DOWN)
+                ajustarAlturaSuperficie(-0.1f);
+        }
+        else if (modoCurvaAtual == modo_revolucao)
+        {
+            if (key == GLUT_KEY_UP)
+            {
+                passoRevolucao -= 2;
+                if (passoRevolucao < 2)
+                    passoRevolucao = 2;
+            }
+
+            if (key == GLUT_KEY_DOWN)
+            {
+                passoRevolucao += 2;
+                if (passoRevolucao > 45)
+                    passoRevolucao = 45;
+            }
+        }
+    }
     glutPostRedisplay();
 }
 
@@ -603,6 +760,52 @@ void teclado(unsigned char key, int x, int y)
     if (moduloAtual == mod_iluminacao) processarTecladoIluminacao(key);
     glutPostRedisplay();
     if (moduloAtual == mod_texturas) processarTecladoTexturas(key);
+
+    if (moduloAtual == mod_curvas) {
+        // --- Teclas comuns a todos os modos ---
+        if (key == 'c' || key == 'C')
+            curvaAtual.corAtual = (curvaAtual.corAtual + 1) % 4;
+ 
+        if (key == '+' && curvaAtual.numSegmentos < 200)
+            curvaAtual.numSegmentos += 10;
+        if (key == '-' && curvaAtual.numSegmentos > 10)
+            curvaAtual.numSegmentos -= 10;
+ 
+        // --- Alternância de modos principais ---
+        if (key == 'v' || key == 'V')   // Volta à curva 1D
+            modoCurvaAtual = modo_curva_1d;
+        if (key == 'b' || key == 'B')   // Superfície
+            modoCurvaAtual = (modoCurvaAtual == modo_superficie)
+                             ? modo_revolucao : modo_superficie;
+ 
+        // --- Teclas exclusivas da curva 1D e revolução ---
+        if (modoCurvaAtual == modo_curva_1d ||
+            modoCurvaAtual == modo_revolucao) {
+            if (key == 'g' || key == 'G')
+                curvaAtual.mostrarPoligono = !curvaAtual.mostrarPoligono;
+            if (key == 'r' || key == 'R') resetarCurva();
+            if (key == 'm' || key == 'M')
+                curvaAtual.modoRender = !curvaAtual.modoRender;
+            if (key == '[') {
+                curvaAtual.espessuraLinha -= 0.5f;
+                if (curvaAtual.espessuraLinha < 1.0f)
+                    curvaAtual.espessuraLinha = 1.0f;
+            }
+            if (key == ']') {
+                curvaAtual.espessuraLinha += 0.5f;
+                if (curvaAtual.espessuraLinha > 10.0f)
+                    curvaAtual.espessuraLinha = 10.0f;
+            }
+        }
+ 
+        // --- Teclas exclusivas da superfície ---
+        if (modoCurvaAtual == modo_superficie) {
+            if (key == 'r' || key == 'R') {
+                alturaSuperficie = 1.0f;
+                resetarSuperficie();
+            }
+        }
+    }
 }
 
 // ============================================================
